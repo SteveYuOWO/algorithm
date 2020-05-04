@@ -1,7 +1,6 @@
-#include <unistd.h>
+#include <stdio.h>
 int main() {
-    char buf[100];
-    read(0, buf, sizeof(buf));
-    puts(buf);
+    char ch[100];
+    scanf("%d", ch);
     return 0;
 }
