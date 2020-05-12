@@ -1,6 +1,10 @@
 #include <stdio.h>
 int main() {
     char ch[100];
-    scanf("%d", ch);
+    FILE *f = fopen("a.txt", "r");
+    fscanf(f, "%s", ch);
+    puts(ch);
+    fscanf(f, "%s", ch);
+    puts(ch);
     return 0;
 }

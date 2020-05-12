@@ -13,7 +13,7 @@ node *build(int pre_l, int pre_r, int post_l, int post_r) {
     node *n = new node(pre[pre_l]);
     int k = post_l;
     while(k < post_r && post[k] != pre[pre_l + 1]) k++;
-    n->left = build(pre_l + 1, pre_l + 1 + k - post_l, post_l , k - 1);
+    n->left = build(pre_l + 1, pre_l + 1 + k - post_l, post_l , k);
     n->right = build(pre_l + 1 + k - post_l + 1, pre_r, k + 1, post_r - 1);
     return n;
 }
