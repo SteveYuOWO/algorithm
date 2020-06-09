@@ -1,329 +1,222 @@
-#define BLACK 1
-#define RED 0
+#include <assert.h>
 #include <iostream>
-
 using namespace std;
-// https://zh.wikipedia.org/wiki/%E7%BA%A2%E9%BB%91%E6%A0%91#C++%E7%A4%BA%E4%BE%8B%E4%BB%A3%E7%A0%81
-class bst {
-private:
-    struct Node {
-        int value;
-        bool color;
-        Node *leftTree, *rightTree, *parent;
+// Basic type definitions:
 
-        Node() : value(0), color(RED), leftTree(NULL), rightTree(NULL), parent(NULL) { }        
+enum color_t { BLACK, RED };
 
-        Node* grandparent() {
-            if(parent == NULL){
-                return NULL;
-            }
-            return parent->parent;
-        }
-
-        Node* uncle() {
-            if(grandparent() == NULL) {
-                return NULL;
-            }
-            if(parent == grandparent()->rightTree)
-                return grandparent()->leftTree;
-            else
-                return grandparent()->rightTree;
-        }
-
-        Node* sibling() {
-            if(parent->leftTree == this)
-                return parent->rightTree;
-            else
-                return parent->leftTree;
-        }
-    };
-
-    void rotate_right(Node *p){
-        Node *gp = p->grandparent();
-        Node *fa = p->parent;
-        Node *y = p->rightTree;
-
-        fa->leftTree = y;
-
-        if(y != NIL)
-            y->parent = fa;
-        p->rightTree = fa;
-        fa->parent = p;
-
-        if(root == fa)
-            root = p;
-        p->parent = gp;
-
-        if(gp != NULL){
-            if(gp->leftTree == fa)
-                gp->leftTree = p;
-            else
-                gp->rightTree = p;
-        }
-
-    }
-
-    void rotate_left(Node *p){
-        if(p->parent == NULL){
-            root = p;
-            return;
-        }
-        Node *gp = p->grandparent();
-        Node *fa = p->parent;
-        Node *y = p->leftTree;
-
-        fa->rightTree = y;
-
-        if(y != NIL)
-            y->parent = fa;
-        p->leftTree = fa;
-        fa->parent = p;
-
-        if(root == fa)
-            root = p;
-        p->parent = gp;
-
-        if(gp != NULL){
-            if(gp->leftTree == fa)
-                gp->leftTree = p;
-            else
-                gp->rightTree = p;
-        }
-    }
-
-    void inorder(Node *p){
-        if(p == NIL)
-            return;
-
-        if(p->leftTree)
-            inorder(p->leftTree);
-
-        cout << p->value << " ";
-                
-        if(p->rightTree)
-            inorder(p->rightTree);
-    }
-
-    string outputColor (bool color) {
-        return color ? "BLACK" : "RED";
-    }
-
-    Node* getSmallestChild(Node *p){
-        if(p->leftTree == NIL)
-            return p;
-        return getSmallestChild(p->leftTree);
-    }
-
-    bool delete_child(Node *p, int data){
-        if(p->value > data){
-            if(p->leftTree == NIL){
-                return false;
-            }
-            return delete_child(p->leftTree, data);
-        } else if(p->value < data){
-            if(p->rightTree == NIL){
-                return false;
-            }
-            return delete_child(p->rightTree, data);
-        } else if(p->value == data){
-            if(p->rightTree == NIL){
-                delete_one_child (p);
-                return true;
-            }
-            Node *smallest = getSmallestChild(p->rightTree);
-            swap(p->value, smallest->value);
-            delete_one_child (smallest);
-
-            return true;
-        }else{
-           return false;
-         }
-    }
-
-    void delete_one_child(Node *p){
-        Node *child = p->leftTree == NIL ? p->rightTree : p->leftTree;
-        if(p->parent == NULL && p->leftTree == NIL && p->rightTree == NIL){
-            p = NULL;
-            root = p;
-            return;
-        }
-        
-        if(p->parent == NULL){
-            delete  p;
-            child->parent = NULL;
-            root = child;
-            root->color = BLACK;
-            return;
-        }
-        
-        if(p->parent->leftTree == p){
-            p->parent->leftTree = child;
-        } else {
-            p->parent->rightTree = child;
-        }
-        child->parent = p->parent;
-
-        if(p->color == BLACK){
-            if(child->color == RED){
-                child->color = BLACK;
-            } else
-                delete_case (child);
-        }
-
-        delete p;
-    }
-
-    void delete_case(Node *p){
-        if(p->parent == NULL){
-            p->color = BLACK;
-            return;
-        }
-        if(p->sibling()->color == RED) {
-            p->parent->color = RED;
-            p->sibling()->color = BLACK;
-            if(p == p->parent->leftTree)
-                //rotate_left(p->sibling());
-                rotate_left(p->parent);
-            else
-                //rotate_right(p->sibling());
-                rotate_right(p->parent);
-        }
-        if(p->parent->color == BLACK && p->sibling()->color == BLACK
-                && p->sibling()->leftTree->color == BLACK && p->sibling()->rightTree->color == BLACK) {
-            p->sibling()->color = RED;
-            delete_case(p->parent);
-        } else if(p->parent->color == RED && p->sibling()->color == BLACK
-                && p->sibling()->leftTree->color == BLACK && p->sibling()->rightTree->color == BLACK) {
-            p->sibling()->color = RED;
-            p->parent->color = BLACK;
-        } else {
-            if(p->sibling()->color == BLACK) {
-                if(p == p->parent->leftTree && p->sibling()->leftTree->color == RED
-                        && p->sibling()->rightTree->color == BLACK) {
-                    p->sibling()->color = RED;
-                    p->sibling()->leftTree->color = BLACK;
-                    rotate_right(p->sibling()->leftTree);
-                } else if(p == p->parent->rightTree && p->sibling()->leftTree->color == BLACK
-                        && p->sibling()->rightTree->color == RED) {
-                    p->sibling()->color = RED;
-                    p->sibling()->rightTree->color = BLACK;
-                    rotate_left(p->sibling()->rightTree);
-                }
-            }
-            p->sibling()->color = p->parent->color;
-            p->parent->color = BLACK;
-            if(p == p->parent->leftTree){
-                p->sibling()->rightTree->color = BLACK;
-                rotate_left(p->sibling());
-            } else {
-                p->sibling()->leftTree->color = BLACK;
-                rotate_right(p->sibling());
-            }
-        }
-    }
-
-    void insert(Node *p, int data){
-        if(p->value >= data){
-            if(p->leftTree != NIL)
-                insert(p->leftTree, data);
-            else {
-                Node *tmp = new Node();
-                tmp->value = data;
-                tmp->leftTree = tmp->rightTree = NIL;
-                tmp->parent = p;
-                p->leftTree = tmp;
-                insert_case (tmp);
-            }
-        } else {
-            if(p->rightTree != NIL)
-                insert(p->rightTree, data);
-            else {
-                Node *tmp = new Node();
-                tmp->value = data;
-                tmp->leftTree = tmp->rightTree = NIL;
-                tmp->parent = p;
-                p->rightTree = tmp;
-                insert_case (tmp);
-            }
-        }
-    }
-
-    void insert_case(Node *p){
-        if(p->parent == NULL){
-            root = p;
-            p->color = BLACK;
-            return;
-        }
-        if(p->parent->color == RED){
-            if(p->uncle()->color == RED) {
-                p->parent->color = p->uncle()->color = BLACK;
-                p->grandparent()->color = RED;
-                insert_case(p->grandparent());
-            } else {
-                if(p->parent->rightTree == p && p->grandparent()->leftTree == p->parent) {
-                    rotate_left(p);
-                    p->color = BLACK;
-                    p->leftTree->color = p->rightTree->color = RED;
-                } else if(p->parent->leftTree == p && p->grandparent()->rightTree == p->parent) {
-                    rotate_right(p);
-                    p->color = BLACK;
-                    p->leftTree->color = p->rightTree->color = RED;
-                } else if(p->parent->leftTree == p && p->grandparent()->leftTree == p->parent) {
-                    p->parent->color = BLACK;
-                    p->grandparent()->color = RED;
-                    rotate_right(p->parent);
-                } else if(p->parent->rightTree == p && p->grandparent()->rightTree == p->parent) {
-                    p->parent->color = BLACK;
-                    p->grandparent()->color = RED;
-                    rotate_left(p->parent);
-                }
-            }
-        }
-    }
-
-    void DeleteTree(Node *p){
-        if(!p || p == NIL){
-            return;
-        }
-        DeleteTree(p->leftTree);
-        DeleteTree(p->rightTree);
-        delete p;
-    }
-public:
-
-    bst() {
-        NIL = new Node();
-        NIL->color = BLACK;
-        root = NULL;
-    }
-
-    ~bst() {
-        if (root)
-            DeleteTree (root);
-        delete NIL;
-    }
-
-    void inorder() {
-        if(root == NULL)
-            return;
-        inorder (root);
-        cout << endl;
-    }
-
-    void insert (int x) {
-        if(root == NULL){
-            root = new Node();
-            root->color = BLACK;
-            root->leftTree = root->rightTree = NIL;
-            root->value = x;
-        } else {
-            insert(root, x);
-        }
-    }
-
-    bool delete_value (int data) {
-        return delete_child(root, data);
-    }
-private:
-    Node *root, *NIL;
+struct Node {
+  Node* parent;
+  Node* left;
+  Node* right;
+  enum color_t color;
+  int key;
+  Node(int k): key(k){}
 };
+
+void InsertRepairTree(Node* n);
+void InsertCase4Step2(Node* n);
+
+// Helper functions:
+
+Node* GetParent(Node* n) {
+  // Note that parent is set to null for the root node.
+  return n == nullptr ? nullptr : n->parent;
+}
+
+Node* GetGrandParent(Node* n) {
+  // Note that it will return nullptr if this is root or child of root
+  return GetParent(GetParent(n));
+}
+
+Node* GetSibling(Node* n) {
+  Node* p = GetParent(n);
+
+  // No parent means no sibling.
+  if (p == nullptr) {
+    return nullptr;
+  }
+
+  if (n == p->left) {
+    return p->right;
+  } else {
+    return p->left;
+  }
+}
+
+Node* GetUncle(Node* n) {
+  Node* p = GetParent(n);
+
+  // No parent means no uncle
+  return GetSibling(p);
+}
+
+void RotateLeft(Node* n) {
+  Node* nnew = n->right;
+  Node* p = GetParent(n);
+  assert(nnew != nullptr);  // Since the leaves of a red-black tree are empty,
+                            // they cannot become internal nodes.
+  n->right = nnew->left;
+  nnew->left = n;
+  n->parent = nnew;
+  // Handle other child/parent pointers.
+  if (n->right != nullptr) {
+    n->right->parent = n;
+  }
+
+  // Initially n could be the root.
+  if (p != nullptr) {
+    if (n == p->left) {
+      p->left = nnew;
+    } else if (n == p->right) {
+      p->right = nnew;
+    }
+  }
+  nnew->parent = p;
+}
+
+void RotateRight(Node* n) {
+  Node* nnew = n->left;
+  Node* p = GetParent(n);
+  assert(nnew != nullptr);  // Since the leaves of a red-black tree are empty,
+                            // they cannot become internal nodes.
+
+  n->left = nnew->right;
+  nnew->right = n;
+  n->parent = nnew;
+
+  // Handle other child/parent pointers.
+  if (n->left != nullptr) {
+    n->left->parent = n;
+  }
+
+  // Initially n could be the root.
+  if (p != nullptr) {
+    if (n == p->left) {
+      p->left = nnew;
+    } else if (n == p->right) {
+      p->right = nnew;
+    }
+  }
+  nnew->parent = p;
+}
+
+
+
+
+void InsertCase1(Node* n) {
+  n->color = BLACK;
+}
+
+void InsertCase2(Node* n) {
+  // Do nothing since tree is still valid.
+  return;
+}
+
+void InsertCase3(Node* n) {
+  GetParent(n)->color = BLACK;
+  GetUncle(n)->color = BLACK;
+  GetGrandParent(n)->color = RED;
+  InsertRepairTree(GetGrandParent(n));
+}
+
+void InsertCase4(Node* n) {
+  Node* p = GetParent(n);
+  Node* g = GetGrandParent(n);
+
+  if (n == p->right && p == g->left) {
+    RotateLeft(p);
+    n = n->left;
+  } else if (n == p->left && p == g->right) {
+    RotateRight(p);
+    n = n->right;
+  }
+
+  InsertCase4Step2(n);
+}
+
+void InsertRepairTree(Node* n) {
+  if (GetParent(n) == nullptr) {
+    InsertCase1(n);
+  } else if (GetParent(n)->color == BLACK) {
+    InsertCase2(n);
+  } else if (GetUncle(n) != nullptr && GetUncle(n)->color == RED) {
+    InsertCase3(n);
+  } else {
+    InsertCase4(n);
+  }
+}
+
+void InsertCase4Step2(Node* n) {
+  Node* p = GetParent(n);
+  Node* g = GetGrandParent(n);
+
+  if (n == p->left) {
+    RotateRight(g);
+  } else {
+    RotateLeft(g);
+  }
+  p->color = BLACK;
+  g->color = RED;
+}
+
+
+void InsertRecurse(Node* root, Node* n) {
+  // Recursively descend the tree until a leaf is found.
+  if (root != nullptr)
+  {
+    if (n->key < root->key) {
+      if (root->left != nullptr) {
+        InsertRecurse(root->left, n);
+        return;
+      } else {
+        root->left = n;
+      }
+    } else { // n->key >= root->key
+      if (root->right != nullptr) {
+        InsertRecurse(root->right, n);
+        return;
+      } else {
+        root->right = n;
+      }
+    }
+  }
+
+  // Insert new Node n.
+  n->parent = root;
+  n->left = nullptr;
+  n->right = nullptr;
+  n->color = RED;
+}
+
+
+Node* Insert(Node* root, Node* n) {
+  // Insert new Node into the current tree.
+  InsertRecurse(root, n);
+
+  // Repair the tree in case any of the red-black properties have been violated.
+  InsertRepairTree(n);
+
+  // Find the new root to return.
+  root = n;
+  while (GetParent(root) != nullptr) {
+    root = GetParent(root);
+  }
+  return root;
+}
+
+int main() {
+    Node *tree;
+    // bst tree;
+    Insert(tree, new Node(11));
+    Insert(tree, new Node(2));
+    Insert(tree, new Node(14));
+    Insert(tree, new Node(15));
+    Insert(tree, new Node(1));
+    Insert(tree, new Node(7));
+    Insert(tree, new Node(5));
+    Insert(tree, new Node(8));
+    Insert(tree, new Node(4));
+    cout << tree->key << endl;
+    return 0;
+}
