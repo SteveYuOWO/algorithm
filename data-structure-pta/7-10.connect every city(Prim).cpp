@@ -34,6 +34,5 @@ int main() {
     }
     if(!conn) printf("-1\n");
     else printf("%d\n", sum);
-    
     return 0;
 }
