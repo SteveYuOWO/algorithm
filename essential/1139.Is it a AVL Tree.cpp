@@ -78,7 +78,7 @@ bool complete(node* root) {
 }
 int N, tmp;
 int main() {
-    freopen("in.txt", "r", stdin);
+    // freopen("in.txt", "r", stdin);
     scanf("%d", &N);
     while(N--) scanf("%d", &tmp), root = insert(root, tmp);
     level(root);

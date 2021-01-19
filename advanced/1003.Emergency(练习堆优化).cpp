@@ -42,6 +42,6 @@ int main() {
             }
         }
     }
-    printf("%d %d", num[c2], w[c2]);
+    printf("%d %d\n", num[c2], w[c2]);
     return 0;
 }

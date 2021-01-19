@@ -40,6 +40,34 @@ void zag(int &p) {
   pushup(tr[p].l); pushup(p);
 }
 
+int getRankByKey(int &p, int key) {
+  if(!p) return 0;
+  if(tr[p].key == key) return tr[tr[p].l].size + 1;
+  else if(tr[p].key > key) return getRankByKey(tr[p].l, key);
+  else return tr[tr[p].l].size + tr[p].cnt + getRankByKey(tr[p].r, key);
+}
+
+int getKeyByRank(int &p, int rank) {
+  if(!p) return INF;
+  if(tr[tr[p].l].size >= rank) return getKeyByRank(tr[p].l, rank);
+  else if(tr[tr[p].l].size + tr[p].cnt >= rank) return tr[p].key;
+  else return getKeyByRank(tr[p].r, rank - tr[tr[p].l].size - tr[p].cnt);
+}
+
+int getPrev(int &p, int key) {
+  if(!p) return -INF;
+  if(tr[p].key >= key) return getPrev(tr[p].l, key);
+  return max(tr[p].key, getPrev(tr[p].r, key));
+}
+
+int getNext(int &p, int key) {
+  if(!p) return INF;
+  if(tr[p].key <= key) return getNext(tr[p].r, key);
+  return min(tr[p].key, getNext(tr[p].l, key));
+}
+
+
+
 void insert(int &p, int key) {
   if(!p) p = getNode(key);
   else if(tr[p].key == key) tr[p].cnt++;
@@ -69,32 +97,6 @@ void remove(int &p, int key) {
   } else if(tr[p].key > key) remove(tr[p].l, key);
   else remove(tr[p].r, key);
   pushup(p);
-}
-
-int getRankByKey(int &p, int key) {
-  if(!p) return 0;
-  if(tr[p].key == key) return tr[tr[p].l].size + 1;
-  else if(tr[p].key > key) return getRankByKey(tr[p].l, key);
-  else return tr[tr[p].l].size + tr[p].cnt + getRankByKey(tr[p].r, key);
-}
-
-int getKeyByRank(int &p, int rank) {
-  if(!p) return INF;
-  if(tr[tr[p].l].size >= rank) return getKeyByRank(tr[p].l, rank);
-  else if(tr[tr[p].l].size + tr[p].cnt >= rank) return tr[p].key;
-  else return getKeyByRank(tr[p].r, rank - tr[tr[p].l].size - tr[p].cnt);
-}
-
-int getPrev(int &p, int key) {
-  if(!p) return -INF;
-  if(tr[p].key >= key) return getPrev(tr[p].l, key);
-  return max(tr[p].key, getPrev(tr[p].r, key));
-}
-
-int getNext(int &p, int key) {
-  if(!p) return INF;
-  if(tr[p].key <= key) return getNext(tr[p].r, key);
-  return min(tr[p].key, getNext(tr[p].l, key));
 }
 
 int main() {
